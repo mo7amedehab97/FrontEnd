@@ -8,6 +8,7 @@ interface ProgressIndicatorProps {
   disabled?: boolean;
   reportType?: 'full' | 'location';
   isAdvancedMode?: boolean;
+  needsPhoneVerification?: boolean;
 }
 
 const ProgressIndicator = ({
@@ -17,9 +18,10 @@ const ProgressIndicator = ({
   disabled = false,
   reportType,
   isAdvancedMode = true,
+  needsPhoneVerification = false,
 }: ProgressIndicatorProps) => {
   // Get filtered step definitions based on report type and advanced mode
-  const steps = getStepDefinitions(reportType || 'full', isAdvancedMode);
+  const steps = getStepDefinitions(reportType || 'full', isAdvancedMode, needsPhoneVerification);
   const totalSteps = steps.length;
 
   return (
