@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useOTP } from '../../../context/OTPContext';
 import { toast } from 'sonner';
 import { FaPhone, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import apiRequest from '../../../services/apiRequest';
+import urls from '../../../urls.json';
 
 interface PhoneVerificationStepProps {
-  onVerificationSuccess: () => void;
+  onVerificationSuccess: (phoneNumber: string) => void;
   disabled?: boolean;
 }
 
@@ -12,7 +14,10 @@ const PhoneVerificationStep: React.FC<PhoneVerificationStepProps> = ({
   onVerificationSuccess,
   disabled = false,
 }) => {
-  const { sendOTP, verifyOTP, state, resetState } = useOTP();
+  const { sendOTP, verifyOTP, state, resetState, isModalOpen, closeOTPModal } = useOTP();
+  
+  // Store original phone number to use after verification (since OTP context might reset)
+  const phoneNumberRef = useRef<string>('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otpCode, setOtpCode] = useState<string[]>(Array(6).fill(''));
   const [step, setStep] = useState<'phone' | 'otp' | 'verified'>('phone');
@@ -21,32 +26,61 @@ const PhoneVerificationStep: React.FC<PhoneVerificationStepProps> = ({
   
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Reset OTP state when component mounts
+  // Keep modal closed while this component is active
+  // This prevents the global OTPModal from interfering with our inline form
   useEffect(() => {
-    resetState();
-    return () => {
-      resetState();
-    };
-  }, [resetState]);
+    // Close modal immediately if it opens
+    if (isModalOpen) {
+      closeOTPModal();
+    }
+  }, [isModalOpen, closeOTPModal]);
+
+  // Initialize component - ensure modal is closed but don't reset state completely
+  // (resetting state might interfere with our local step management)
+  useEffect(() => {
+    // Ensure modal is closed on mount
+    if (isModalOpen) {
+      closeOTPModal();
+    }
+    // Don't reset state here as it might interfere with our local state management
+  }, []); // Only run on mount
 
   // Handle phone number submission
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendOTP = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     setError(null);
     
-    if (!phoneNumber || phoneNumber.length < 9) {
+    const phoneToSend = phoneNumberRef.current || phoneNumber;
+    
+    if (!phoneToSend || phoneToSend.length < 9) {
       setError('Please enter a valid phone number');
       return;
     }
 
+    // Store phone number in ref to preserve it
+    phoneNumberRef.current = phoneToSend;
+
     setIsLoading(true);
     try {
-      const success = await sendOTP(phoneNumber, 'sms');
-      if (success) {
-        setStep('otp');
-      }
+      // Call the OTP sending API directly to avoid any modal interference
+      await apiRequest({
+        url: urls.sms_send_otp,
+        method: 'POST',
+        body: {
+          phone_number: phoneToSend,
+          channel: 'sms',
+        },
+      });
+
+      // If successful, show OTP input form
+      setStep('otp');
+      toast.success('Verification code sent to your phone');
     } catch (err: any) {
-      setError(err?.message || 'Failed to send verification code');
+      const errorMessage = err?.message || 'Failed to send verification code. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -62,14 +96,32 @@ const PhoneVerificationStep: React.FC<PhoneVerificationStepProps> = ({
 
     setIsLoading(true);
     setError(null);
+    
+    // Store the phone number before verification (in case OTP context resets it)
+    const phoneToVerify = phoneNumberRef.current || phoneNumber;
+    
     try {
-      const success = await verifyOTP(code);
-      if (success) {
-        setStep('verified');
-        onVerificationSuccess();
-      }
+      // Call the OTP verification API directly to avoid triggering global callbacks
+      // We'll handle the verification ourselves without using the context's verifyOTP
+      // which might have callbacks that cause navigation
+      const response = await apiRequest({
+        url: urls.sms_verify_otp,
+        method: 'POST',
+        body: {
+          phone_number: phoneToVerify,
+          code,
+        },
+      });
+
+      // If verification succeeds, update our local state and call our success callback
+      setStep('verified');
+      onVerificationSuccess(phoneToVerify);
     } catch (err: any) {
-      setError(err?.message || 'Verification failed');
+      // Check for 404 (invalid code)
+      const errorMessage = err?.response?.status === 404 
+        ? 'Invalid verification code. Please try again.'
+        : err?.message || 'Verification failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -155,7 +207,8 @@ const PhoneVerificationStep: React.FC<PhoneVerificationStepProps> = ({
             )}
 
             <button
-              type="submit"
+              type="button"
+              onClick={handleSendOTP}
               disabled={isLoading || disabled || !phoneNumber}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gem hover:bg-gem/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gem disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
@@ -210,7 +263,10 @@ const PhoneVerificationStep: React.FC<PhoneVerificationStepProps> = ({
             
             <div className="text-center mt-4">
                 <button 
-                    onClick={handleSendOTP} 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSendOTP();
+                    }} 
                     disabled={isLoading || disabled}
                     className="text-sm text-gray-500 hover:text-gray-700 font-medium"
                 >
@@ -225,6 +281,7 @@ const PhoneVerificationStep: React.FC<PhoneVerificationStepProps> = ({
 };
 
 export default PhoneVerificationStep;
+
 
 
 
