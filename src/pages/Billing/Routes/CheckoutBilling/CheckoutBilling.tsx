@@ -270,10 +270,10 @@ function CheckoutBilling({ Name }: { Name: string }) {
 
       // Sort by tier order: basic, standard, single_location_premium, premium
       const tierOrder: Record<string, number> = { 
-        basic: 0,
+        basic: 2,
         standard: 1, 
-        single_location_premium: 2, 
-        premium: 3
+        single_location_premium: 3, 
+        premium: 0
       };
       transformedTiers.sort((a, b) => {
         const orderA = tierOrder[a.reportKey] ?? 999;
