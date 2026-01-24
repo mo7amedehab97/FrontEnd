@@ -268,7 +268,7 @@ function CheckoutBilling({ Name }: { Name: string }) {
         };
       });
 
-      // Sort by tier order: basic, standard, single_location_premium, premium
+// Tier with the smallest order is shown first
       const tierOrder: Record<string, number> = { 
         basic: 2,
         standard: 1, 

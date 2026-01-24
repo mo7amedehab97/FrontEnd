@@ -83,7 +83,7 @@ const SideBar = () => {
             {!isColabsed && <span className="ml-2 text-white truncate">Account</span>}
           </Link>
 
-          <a className="sidebar-icon" href="https://s-locator.com/" title="About Us">
+          <a className="sidebar-icon" href="https://s-locator.com/" title="About Us" target="_blank">
             <div>
               <MdInfo className="w-6 h-6 transition-all fill-white" />
             </div>
