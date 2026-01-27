@@ -665,9 +665,9 @@ function CheckoutBilling({ Name }: { Name: string }) {
         });
 
         return {
-          total_cost: response.data.data.total_cost ?? prev?.total_cost,
-          intelligence_purchase_items: prev?.intelligence_purchase_items ?? undefined,
-          dataset_purchase_items: prev?.dataset_purchase_items ?? undefined,
+        total_cost: response.data.data.total_cost ?? prev?.total_cost,
+        intelligence_purchase_items: prev?.intelligence_purchase_items ?? undefined,
+        dataset_purchase_items: prev?.dataset_purchase_items ?? undefined,
           report_purchase_items: mergedReportItems,
         };
       });
@@ -983,10 +983,10 @@ function CheckoutBilling({ Name }: { Name: string }) {
         checkout.report;
       
       if (hasAllRequiredFields) {
-        const timeoutId = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
           fetchSelectedReportPrice();
-        }, 300);
-        return () => clearTimeout(timeoutId);
+      }, 300);
+      return () => clearTimeout(timeoutId);
       }
     } else if (activeView === 'datasets' && hasInitializedDatasets && openedCategories.length > 0) {
       // For datasets, only fetch if at least one category is opened
@@ -1403,16 +1403,16 @@ function CheckoutBilling({ Name }: { Name: string }) {
                           {/* Show calculated price only if this report is selected and all required fields are present */}
                           {hasAllRequiredFields && checkout.report === tier.reportKey ? (
                             isCalculatingPrices ? (
-                              <span className="text-2xl animate-pulse">Loading...</span>
-                            ) : priceData?.report_purchase_items?.find(
+                            <span className="text-2xl animate-pulse">Loading...</span>
+                          ) : priceData?.report_purchase_items?.find(
+                              r => r.report_tier === tier.reportKey
+                            ) ? (
+                            formatPrice(
+                              priceData.report_purchase_items.find(
                                 r => r.report_tier === tier.reportKey
-                              ) ? (
-                              formatPrice(
-                                priceData.report_purchase_items.find(
-                                  r => r.report_tier === tier.reportKey
-                                )?.cost || 0
-                              )
-                            ) : (
+                              )?.cost || 0
+                            )
+                          ) : (
                               formatPrice(tier.price)
                             )
                           ) : (
