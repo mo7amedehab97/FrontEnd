@@ -179,6 +179,7 @@ function CheckoutModal({
         intelligences: string[];
         displayed_price: number;
         report?: ReportTier;
+        report_potential_business_type?: string;
         promotion_code?: string;
       } = {
         user_id: authResponse.localId,
@@ -191,6 +192,10 @@ function CheckoutModal({
 
       if (checkout.report) {
         requestBody.report = checkout.report;
+      }
+
+      if (checkout.report_potential_business_type && checkout.report_potential_business_type.trim()) {
+        requestBody.report_potential_business_type = checkout.report_potential_business_type.trim();
       }
 
       if (promotionCode.trim()) {
