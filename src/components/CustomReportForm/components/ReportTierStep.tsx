@@ -322,16 +322,13 @@ const ReportTierStep = ({
     );
   }
 
-  // For full reports, use existing tier pricing logic
+  // For full reports, use card-based pricing design matching the image
   return (
-    <div className="space-y-4 animate-fade-in-up">
-      <div className="text-center mb-4">
-        <h3 className="text-lg font-bold text-gray-900 mb-1">Choose Report Tier</h3>
-        <p className="text-sm text-gray-600">
-          Select the level of detail and datasets you want in your report
-        </p>
+    <div className="h-full flex flex-col animate-fade-in-up overflow-hidden">
+      <div className="text-center mb-4 flex-shrink-0">
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">Choose Report Tier</h3>
         {isLoadingPrices && (
-          <p className="text-xs text-gray-500 mt-2 flex items-center justify-center">
+          <p className="text-xs text-gray-500 flex items-center justify-center">
             <svg
               className="animate-spin -ml-1 mr-2 h-3 w-3 text-gray-400"
               xmlns="http://www.w3.org/2000/svg"
@@ -357,220 +354,311 @@ const ReportTierStep = ({
         )}
       </div>
 
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-4">
-          {/* Premium Report */}
-          {!tierAvailability.premium ? (
-            <div className="relative flex items-center p-5 border-2 rounded-xl cursor-not-allowed transition-all duration-200 border-gray-300 bg-gray-100/60 opacity-60">
-              <div className="absolute top-3 right-3 z-10">
-                <span className="text-xs bg-purple-500 text-white px-3 py-1 rounded-full font-semibold">
-                  Coming soon
-                </span>
+      <div className="flex-1 overflow-hidden flex items-center justify-center py-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-7xl mx-auto w-full h-full max-h-full">
+          {/* Basic Report Card */}
+          <label
+            className={`relative flex flex-col border-2 rounded-xl p-4 md:p-6 cursor-pointer transition-all duration-200 h-full ${
+              currentTier === 'basic'
+                ? 'border-primary bg-white shadow-lg'
+                : 'border-gray-200 hover:border-primary/50 hover:shadow-md'
+            } ${disabled || !tierAvailability.basic ? 'cursor-not-allowed opacity-60' : ''}`}
+          >
+            <input
+              type="radio"
+              name="report_tier"
+              value="basic"
+              checked={currentTier === 'basic'}
+              onChange={e => onInputChange('report_tier', e.target.value)}
+              disabled={disabled || !tierAvailability.basic}
+              className="sr-only"
+            />
+            
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <h4 className="text-xl font-bold text-gray-900 mb-2">Basic</h4>
+              <p className="text-sm text-gray-600 mb-3">Perfect for individual location research</p>
+              
+              <div className="mb-3">
+                <div className={`text-3xl md:text-4xl font-bold mb-1 ${currentTier === 'basic' ? 'text-primary' : 'text-gray-900'}`}>
+                  {formatPriceValue(tierPrices.basic)}
+                </div>
+                <div className="text-xs text-gray-500">per report</div>
               </div>
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center flex-1">
-                  <div className="w-5 h-5 border-2 rounded-full mr-4 flex items-center justify-center border-gray-300"></div>
-                  <div className="flex-1">
-                    <div className="font-bold text-base text-gray-700 mb-1">Premium Report</div>
-                    <div className="text-sm text-gray-500">
-                      Includes pharmacy, dentists, hospitals, supermarkets, population intelligence,
-                      and income intelligence datasets
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right ml-4">
-                  <div className="text-xl font-bold text-gray-600">
-                    {formatPriceValue(tierPrices.premium)}
-                  </div>
-                  <div className="text-xs text-gray-500">USD</div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <label
-              className={`relative flex items-center p-5 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                currentTier === 'premium'
-                  ? 'border-primary bg-gradient-to-br from-primary/5 to-green-50 shadow-lg'
-                  : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
-              } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
-            >
-              <input
-                type="radio"
-                name="report_tier"
-                value="premium"
-                checked={currentTier === 'premium'}
-                onChange={e => onInputChange('report_tier', e.target.value)}
-                disabled={disabled}
-                className="sr-only"
-              />
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center flex-1">
-                  <div
-                    className={`w-5 h-5 border-2 rounded-full mr-4 flex items-center justify-center transition-all ${
-                      currentTier === 'premium' ? 'border-primary bg-primary' : 'border-gray-300'
-                    }`}
-                  >
-                    {currentTier === 'premium' && (
-                      <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-base text-gray-900 mb-1">Premium Report</div>
-                    <div className="text-sm text-gray-600">
-                      Includes pharmacy, dentists, hospitals, supermarkets, population intelligence,
-                      and income intelligence datasets
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right ml-4">
-                  <div className={`text-xl font-bold ${currentTier === 'premium' ? 'text-primary' : 'text-gray-900'}`}>
-                    {formatPriceValue(tierPrices.premium)}
-                  </div>
-                  <div className="text-xs text-gray-500">USD</div>
-                </div>
-              </div>
-            </label>
-          )}
 
-          {/* Standard Report */}
-          {!tierAvailability.standard ? (
-            <div className="relative flex items-center p-5 border-2 rounded-xl cursor-not-allowed transition-all duration-200 border-gray-300 bg-gray-100/60 opacity-60">
-              <div className="absolute top-3 right-3 z-10">
-                <span className="text-xs bg-purple-500 text-white px-3 py-1 rounded-full font-semibold">
-                  Coming soon
-                </span>
-              </div>
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center flex-1">
-                  <div className="w-5 h-5 border-2 rounded-full mr-4 flex items-center justify-center border-gray-300"></div>
-                  <div className="flex-1">
-                    <div className="font-bold text-base text-gray-700 mb-1">Standard Report</div>
-                    <div className="text-sm text-gray-500">
-                      Includes complementary and cross-shopping categories analysis
-                    </div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-2 md:p-3 mb-3">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <div>
+                    <div className="text-xs font-semibold text-green-800">AREA INTELLIGENCE</div>
+                    <div className="text-xs text-green-700">Population Smart population data.</div>
                   </div>
-                </div>
-                <div className="text-right ml-4">
-                  <div className="text-xl font-bold text-gray-600">
-                    {formatPriceValue(tierPrices.standard)}
-                  </div>
-                  <div className="text-xs text-gray-500">USD</div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <label
-              className={`relative flex items-center p-5 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                currentTier === 'standard'
-                  ? 'border-primary bg-gradient-to-br from-primary/5 to-green-50 shadow-lg'
-                  : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
-              } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
-            >
-              <input
-                type="radio"
-                name="report_tier"
-                value="standard"
-                checked={currentTier === 'standard'}
-                onChange={e => onInputChange('report_tier', e.target.value)}
-                disabled={disabled}
-                className="sr-only"
-              />
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center flex-1">
-                  <div
-                    className={`w-5 h-5 border-2 rounded-full mr-4 flex items-center justify-center transition-all ${
-                      currentTier === 'standard' ? 'border-primary bg-primary' : 'border-gray-300'
-                    }`}
-                  >
-                    {currentTier === 'standard' && (
-                      <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-base text-gray-900 mb-1">Standard Report</div>
-                    <div className="text-sm text-gray-600">
-                      Includes complementary and cross-shopping categories analysis
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right ml-4">
-                  <div className={`text-xl font-bold ${currentTier === 'standard' ? 'text-primary' : 'text-gray-900'}`}>
-                    {formatPriceValue(tierPrices.standard)}
-                  </div>
-                  <div className="text-xs text-gray-500">USD</div>
-                </div>
-              </div>
-            </label>
-          )}
 
-          {/* Basic Report */}
-          {!tierAvailability.basic ? (
-            <div className="relative flex items-center p-5 border-2 rounded-xl cursor-not-allowed transition-all duration-200 border-gray-300 bg-gray-100/60 opacity-60">
-              <div className="absolute top-3 right-3 z-10">
-                <span className="text-xs bg-purple-500 text-white px-3 py-1 rounded-full font-semibold">
-                  Coming soon
-                </span>
-              </div>
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center flex-1">
-                  <div className="w-5 h-5 border-2 rounded-full mr-4 flex items-center justify-center border-gray-300"></div>
-                  <div className="flex-1">
-                    <div className="font-bold text-base text-gray-700 mb-1">Basic Report</div>
-                    <div className="text-sm text-gray-500">
-                      Core location analysis with your selected business type
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right ml-4">
-                  <div className="text-xl font-bold text-gray-600">
-                    {formatPriceValue(tierPrices.basic)}
-                  </div>
-                  <div className="text-xs text-gray-500">USD</div>
-                </div>
-              </div>
+              <ul className="space-y-1.5 mb-4 flex-1 overflow-y-auto">
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-primary mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Top 10 Locations Ranked</span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-primary mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Preset Scoring Model</span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-primary mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Up to 5 POI Datasets</span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-primary mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Full Data Access</span>
+                </li>
+              </ul>
+
+              <button
+                type="button"
+                className={`w-full py-2 md:py-3 px-4 rounded-lg font-semibold text-sm transition-all flex-shrink-0 ${
+                  currentTier === 'basic'
+                    ? 'bg-primary text-white hover:bg-primary/90'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onInputChange('report_tier', 'basic');
+                }}
+              >
+                GET BASIC REPORT
+              </button>
             </div>
-          ) : (
-            <label
-              className={`relative flex items-center p-5 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                currentTier === 'basic'
-                  ? 'border-primary bg-gradient-to-br from-primary/5 to-green-50 shadow-lg'
-                  : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
-              } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
-            >
-              <input
-                type="radio"
-                name="report_tier"
-                value="basic"
-                checked={currentTier === 'basic'}
-                onChange={e => onInputChange('report_tier', e.target.value)}
-                disabled={disabled}
-                className="sr-only"
-              />
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center flex-1">
-                  <div
-                    className={`w-5 h-5 border-2 rounded-full mr-4 flex items-center justify-center transition-all ${
-                      currentTier === 'basic' ? 'border-primary bg-primary' : 'border-gray-300'
-                    }`}
-                  >
-                    {currentTier === 'basic' && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-base text-gray-900 mb-1">Basic Report</div>
-                    <div className="text-sm text-gray-600">
-                      Core location analysis with your selected business type
-                    </div>
-                  </div>
+          </label>
+
+          {/* Standard Report Card - MOST POPULAR */}
+          <label
+            className={`relative flex flex-col border-2 rounded-xl p-4 md:p-6 cursor-pointer transition-all duration-200 h-full ${
+              currentTier === 'standard'
+                ? 'border-purple-500 bg-white shadow-lg'
+                : 'border-gray-200 hover:border-purple-500/50 hover:shadow-md'
+            } ${disabled || !tierAvailability.standard ? 'cursor-not-allowed opacity-60' : ''}`}
+          >
+            <input
+              type="radio"
+              name="report_tier"
+              value="standard"
+              checked={currentTier === 'standard'}
+              onChange={e => onInputChange('report_tier', e.target.value)}
+              disabled={disabled || !tierAvailability.standard}
+              className="sr-only"
+            />
+            
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center">
+                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                MOST POPULAR
+              </span>
+            </div>
+            
+            <div className="flex-1 flex flex-col">
+              <h4 className="text-xl font-bold text-gray-900 mb-2">Standard</h4>
+              <p className="text-sm text-gray-600 mb-4">For growing teams and enterprises</p>
+              
+              <div className="mb-3">
+                <div className={`text-3xl md:text-4xl font-bold mb-1 ${currentTier === 'standard' ? 'text-purple-600' : 'text-gray-900'}`}>
+                  {formatPriceValue(tierPrices.standard)}
                 </div>
-                <div className="text-right ml-4">
-                  <div className={`text-xl font-bold ${currentTier === 'basic' ? 'text-primary' : 'text-gray-900'}`}>
-                    {formatPriceValue(tierPrices.basic)}
+                <div className="text-xs text-gray-500">per report</div>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 md:p-3 mb-3">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <div>
+                    <div className="text-xs font-semibold text-purple-800">AREA INTELLIGENCE</div>
+                    <div className="text-xs text-purple-700">Population Smart population data.</div>
                   </div>
-                  <div className="text-xs text-gray-500">USD</div>
                 </div>
               </div>
-            </label>
-          )}
+
+              <ul className="space-y-1.5 mb-4 flex-1 overflow-y-auto">
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Top 10 Locations Ranked</span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Custom Scoring Model</span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Up to 10 POI Datasets</span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Full Data Access</span>
+                </li>
+              </ul>
+
+              <button
+                type="button"
+                className={`w-full py-2 md:py-3 px-4 rounded-lg font-semibold text-sm transition-all flex-shrink-0 ${
+                  currentTier === 'standard'
+                    ? 'bg-purple-600 text-white hover:bg-purple-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onInputChange('report_tier', 'standard');
+                }}
+              >
+                GET STANDARD REPORT
+              </button>
+            </div>
+          </label>
+
+          {/* Premium Report Card - Highest ROI */}
+          <label
+            className={`relative flex flex-col border-2 rounded-xl p-4 md:p-6 cursor-pointer transition-all duration-200 h-full ${
+              currentTier === 'premium'
+                ? 'border-purple-500 bg-white shadow-lg'
+                : 'border-gray-200 hover:border-purple-500/50 hover:shadow-md'
+            } ${disabled || !tierAvailability.premium ? 'cursor-not-allowed opacity-60' : ''}`}
+          >
+            <input
+              type="radio"
+              name="report_tier"
+              value="premium"
+              checked={currentTier === 'premium'}
+              onChange={e => onInputChange('report_tier', e.target.value)}
+              disabled={disabled || !tierAvailability.premium}
+              className="sr-only"
+            />
+            
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center">
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Highest ROI
+              </span>
+            </div>
+            
+            <div className="flex-1 flex flex-col">
+              <h4 className="text-xl font-bold text-gray-900 mb-2">Premium</h4>
+              <p className="text-sm text-gray-600 mb-4">Enterprise-grade intelligence suite</p>
+              
+              <div className="mb-3">
+                <div className={`text-3xl md:text-4xl font-bold mb-1 ${currentTier === 'premium' ? 'text-purple-600' : 'text-gray-900'}`}>
+                  {formatPriceValue(tierPrices.premium)}
+                </div>
+                <div className="text-xs text-gray-500">per report</div>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 md:p-3 mb-3">
+                <div className="text-xs font-semibold text-purple-800 mb-2">AREA INTELLIGENCE PACK</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 text-purple-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <div className="text-xs text-purple-700">Population</div>
+                  </div>
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 text-purple-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-xs text-purple-700">Income</div>
+                  </div>
+                </div>
+                <div className="text-xs text-purple-700 mt-1">Smart population & income data.</div>
+              </div>
+
+              <ul className="space-y-1.5 mb-3 flex-1 overflow-y-auto">
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Top 10 Locations Ranked</span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Custom Scoring Model</span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Up to 15 POI Datasets</span>
+                </li>
+                <li className="flex items-start text-sm text-gray-700">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Full Data Access</span>
+                </li>
+              </ul>
+
+              <div className="mb-3 flex-shrink-0">
+                <div className="text-xs font-semibold text-purple-800 mb-1.5">Premium Support</div>
+                <ul className="space-y-1">
+                  <li className="flex items-start text-xs text-gray-700">
+                    <svg className="w-3 h-3 text-purple-600 mr-1 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Concierge Service</span>
+                  </li>
+                  <li className="flex items-start text-xs text-gray-700">
+                    <svg className="w-3 h-3 text-purple-600 mr-1 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Personal Business Consultant</span>
+                  </li>
+                  <li className="flex items-start text-xs text-gray-700">
+                    <svg className="w-3 h-3 text-purple-600 mr-1 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Priority Support</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                className={`w-full py-2 md:py-3 px-4 rounded-lg font-semibold text-sm transition-all flex-shrink-0 ${
+                  currentTier === 'premium'
+                    ? 'bg-purple-600 text-white hover:bg-purple-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onInputChange('report_tier', 'premium');
+                }}
+              >
+                GET PREMIUM REPORT
+              </button>
+            </div>
+          </label>
         </div>
       </div>
     </div>

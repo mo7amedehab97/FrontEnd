@@ -9,6 +9,7 @@ interface ProgressIndicatorProps {
   reportType?: 'full' | 'location';
   isAdvancedMode?: boolean;
   needsPhoneVerification?: boolean;
+  hideLabels?: boolean;
 }
 
 const ProgressIndicator = ({
@@ -19,6 +20,7 @@ const ProgressIndicator = ({
   reportType,
   isAdvancedMode = true,
   needsPhoneVerification = false,
+  hideLabels = false,
 }: ProgressIndicatorProps) => {
   // Get filtered step definitions based on report type and advanced mode
   const allSteps = getStepDefinitions(reportType || 'full', isAdvancedMode, needsPhoneVerification);
@@ -68,14 +70,16 @@ const ProgressIndicator = ({
   const currentVisualStep = getCurrentVisualStep();
 
   return (
-    <div className="px-4 sm:px-6 py-3 bg-gray-50 border-b border-gray-200">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-semibold text-gray-900">Progress</h2>
-        <span className="text-xs text-gray-600">
-          Step {currentVisualStep || currentStep} of {visibleSteps.length}
-        </span>
-      </div>
-      <div className="flex items-center justify-between">
+    <div className="px-4 sm:px-6 py-2 border-b border-gray-200">
+      {!hideLabels && (
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold text-gray-900">Progress</h2>
+          <span className="text-xs text-gray-600">
+            Step {currentVisualStep || currentStep} of {visibleSteps.length}
+          </span>
+        </div>
+      )}
+      <div className={`flex items-center justify-between ${hideLabels ? '' : ''}`}>
         {visibleSteps.map((step, index) => {
           const visualStepNumber = index + 1;
           const actualStepNumber = getActualStepNumber(index);
