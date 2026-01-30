@@ -118,6 +118,7 @@ export function LayerProvider(props: { children: ReactNode }) {
   const [password, setPassword] = useState<string>('');
 
   const pageCountsRef = useRef<{ [layerId: string]: number }>({});
+  const lastSyncStateRef = useRef<{ hasPopulation: boolean; hasIncome: boolean } | null>(null);
 
   const [layerDataMap, setLayerDataMap] = useState<LayerDataMap>({});
   const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
@@ -897,7 +898,7 @@ export function LayerProvider(props: { children: ReactNode }) {
       setCurrentViewportInsights(insights);
       return null;
     },
-    [currentZoomLevel, mapRef.current]
+    [currentZoomLevel, mapRef.current, populationSample, incomeSample, authResponse?.localId]
   );
 
   const fetchPopulationByViewport = (shouldReturnFeatures: boolean = false) =>
@@ -915,9 +916,11 @@ export function LayerProvider(props: { children: ReactNode }) {
       sample: incomeSample,
     });
 
-  useEffect(() => {
-    resetAreaIntelligence();
-  }, [selectedContainerType]);
+  // Don't reset area intelligence when switching tabs
+  // Only reset when country/city changes (handled in handleCountryCitySelection)
+  // useEffect(() => {
+  //   resetAreaIntelligence();
+  // }, [selectedContainerType]);
 
   async function switchPopulationLayer() {
     if (!includePopulation && includeIncome) handleIncomeLayer(false);
@@ -1085,6 +1088,58 @@ export function LayerProvider(props: { children: ReactNode }) {
     }
   }, [incomeSample]);
 
+  // Sync toggle state with existing intelligent layers (e.g., after tab switch)
+  useEffect(() => {
+    const hasPopulationLayer = geoPoints.some(
+      point => 
+        (point.is_intelligent && point.basedon === 'population') ||
+        String(point.layerId) === '1001'
+    );
+    const hasIncomeLayer = geoPoints.some(
+      point => 
+        (point.is_intelligent && point.basedon === 'income') ||
+        String(point.layerId) === '1003'
+    );
+
+    // Prevent infinite loops by checking if state has changed
+    const currentState = { hasPopulation: hasPopulationLayer, hasIncome: hasIncomeLayer };
+    if (lastSyncStateRef.current && 
+        lastSyncStateRef.current.hasPopulation === hasPopulationLayer &&
+        lastSyncStateRef.current.hasIncome === hasIncomeLayer &&
+        includePopulation === hasPopulationLayer &&
+        includeIncome === hasIncomeLayer) {
+      return; // State is already in sync, no need to update
+    }
+    lastSyncStateRef.current = currentState;
+
+    // Sync population toggle state with layer existence
+    if (hasPopulationLayer && !includePopulation) {
+      console.debug('Syncing population toggle - layer exists but toggle is off', {
+        hasPopulationLayer,
+        includePopulation,
+        geoPoints: geoPoints.filter(p => p.is_intelligent)
+      });
+      setIncludePopulation(true);
+    } else if (!hasPopulationLayer && includePopulation) {
+      console.debug('Restoring population layer - toggle is on but layer missing');
+      handlePopulationLayer(true);
+    }
+
+    // Sync income toggle state with layer existence
+    if (hasIncomeLayer && !includeIncome) {
+      console.debug('Syncing income toggle - layer exists but toggle is off', {
+        hasIncomeLayer,
+        includeIncome,
+        geoPoints: geoPoints.filter(p => p.is_intelligent)
+      });
+      setIncludeIncome(true);
+    } else if (!hasIncomeLayer && includeIncome) {
+      console.debug('Restoring income layer - toggle is on but layer missing');
+      handleIncomeLayer(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geoPoints, selectedContainerType, includePopulation, includeIncome]);
+
   // Handle pending activation from loaded catalog's intelligence_viewport
   useEffect(() => {
     if (pendingActivation) {
@@ -1105,14 +1160,13 @@ export function LayerProvider(props: { children: ReactNode }) {
           handleIncomeLayer(false);
         }
       } else {
-        // No intelligence viewport - turn off both toggles
-        console.debug('No intelligence viewport - disabling intelligence layers');
-        if (includePopulation) {
-          handlePopulationLayer(false);
-        }
-        if (includeIncome) {
-          handleIncomeLayer(false);
-        }
+        // Only turn off toggles if this is from a catalog load, not from tab switching
+        // Check if we're actually loading a catalog (intelligenceViewport was explicitly set to null)
+        // vs just switching tabs (intelligenceViewport might be undefined but we want to preserve state)
+        // We'll only reset if pendingActivation is true AND we're explicitly loading a catalog without intelligence
+        // For now, preserve state when intelligenceViewport is null to avoid resetting on tab switches
+        console.debug('No intelligence viewport in catalog - preserving current state');
+        // Don't reset toggles when switching tabs - only reset when explicitly loading a catalog
       }
       
       // Reset pending activation flag

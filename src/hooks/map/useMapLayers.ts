@@ -328,9 +328,12 @@ export function useMapLayers() {
 
               // Preload street view checks for all features in this collection
               // This runs in the background and doesn't block layer rendering
-              preloadStreetViewChecks(featureCollection).catch(error => {
-                console.error('Error preloading street view checks:', error);
-              });
+              // Skip street view checks for intelligent layers (population/income)
+              if (!isIntelligentLayer(featureCollection)) {
+                preloadStreetViewChecks(featureCollection).catch(error => {
+                  console.error('Error preloading street view checks:', error);
+                });
+              }
 
               const sourceId = `circle-source-${index}`;
               const layerId = `circle-layer-${index}`;
@@ -686,17 +689,31 @@ export function useMapLayers() {
                     const [lng, lat] = coordinates;
 
                     // Use the debounced function with a callback
-                    debouncedStreetViewCheck(lat, lng, hasStreetView => {
+                    // Skip street view checks for intelligent layers (population/income)
+                    if (!isIntelligentLayer(featureCollection)) {
+                      debouncedStreetViewCheck(lat, lng, hasStreetView => {
+                        if (popup) {
+                          const updatedContent = generatePopupContent(
+                            properties,
+                            coordinates,
+                            false,
+                            hasStreetView
+                          );
+                          popup.setHTML(updatedContent);
+                        }
+                      });
+                    } else {
+                      // For intelligent layers, show popup without street view check
                       if (popup) {
                         const updatedContent = generatePopupContent(
                           properties,
                           coordinates,
                           false,
-                          hasStreetView
+                          false // No street view for intelligent layers
                         );
                         popup.setHTML(updatedContent);
                       }
-                    });
+                    }
 
                     if (popup) {
                       const popupElement = popup.getElement();
