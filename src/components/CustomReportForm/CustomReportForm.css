@@ -60,24 +60,26 @@
 /* Custom scrollbar for better UX */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #d1d5db transparent;
+  scrollbar-color: #9ca3af #f3f4f6;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f3f4f6;
+  border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #d1d5db;
-  border-radius: 3px;
+  background-color: #9ca3af;
+  border-radius: 4px;
+  border: 1px solid #f3f4f6;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #9ca3af;
+  background-color: #6b7280;
 }
 
 /* Enhanced button hover effects */
@@ -105,9 +107,11 @@
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.05);
   }
+
   100% {
     transform: scale(1);
   }
@@ -119,13 +123,16 @@
 
 /* Error shake animation */
 @keyframes errorShake {
+
   0%,
   100% {
     transform: translateX(0);
   }
+
   25% {
     transform: translateX(-5px);
   }
+
   75% {
     transform: translateX(5px);
   }

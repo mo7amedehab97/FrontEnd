@@ -75,7 +75,7 @@ const FormNavigation = ({
   nextButtonText = shouldShowSkip ? 'Skip' : 'Next';
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between px-4">
       <button
         type="button"
         onClick={onPreviousStep}

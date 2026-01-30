@@ -1501,7 +1501,7 @@ const CustomReportForm = () => {
 
       {/* Floating Navigation Buttons at Bottom - Hide at Step 0 (report type selection) and last step */}
       {formData && currentStep > 0 && !isLastStep && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-10">
+        <div className=" bg-white border-t border-gray-200  shadow-lg z-10 py-1" >
           <FormNavigation
             currentStep={currentStep}
             isSubmitting={isSubmitting}
