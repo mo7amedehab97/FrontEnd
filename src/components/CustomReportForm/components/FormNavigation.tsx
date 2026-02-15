@@ -96,7 +96,7 @@ const FormNavigation = ({
             disabled={!validateCurrentStep(currentStep) || isSubmitting}
             aria-label={shouldShowSkip ? 'Skip to next step' : 'Continue to next step'}
             aria-disabled={!validateCurrentStep(currentStep) || isSubmitting}
-            className={`flex items-center px-6 py-2.5 font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed btn-hover-lift ${
+            className={`flex items-center px-6 py-2.5 font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] active:translate-y-0 active:shadow-[0_2px_4px_rgba(0,0,0,0.1)] ${
               shouldShowSkip
                 ? 'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-500/20'
                 : 'bg-primary text-white hover:bg-primary/90 focus:ring-primary/20'
@@ -113,7 +113,7 @@ const FormNavigation = ({
             aria-label={isSubmitting ? 'Generating report, please wait' : 'Generate your report'}
             aria-busy={isSubmitting}
             aria-disabled={isSubmitting || !validateForm()}
-            className="flex items-center px-6 py-2.5 bg-gem-gradient text-white font-semibold rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed btn-hover-lift"
+            className="flex items-center px-6 py-2.5 bg-gem-gradient text-white font-semibold rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] active:translate-y-0 active:shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
           >
             {isSubmitting ? (
               <>

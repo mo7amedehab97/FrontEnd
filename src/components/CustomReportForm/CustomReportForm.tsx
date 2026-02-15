@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../services/apiRequest';
 import urls from '../../urls.json';
-import './CustomReportForm.css';
+
 import { FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
 import {
   BusinessCategoryMetrics,
