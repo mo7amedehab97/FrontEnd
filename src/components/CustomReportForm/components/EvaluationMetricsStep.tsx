@@ -1,4 +1,5 @@
 import { FaChartBar, FaCheck, FaExclamationTriangle, FaInfoCircle } from 'react-icons/fa';
+import './EvaluationMetricsStep.css';
 import { CustomReportData, FormErrors, MetricKey } from '../../../types/allTypesAndInterfaces';
 import { getMetricIcon } from '../utils/metricIcons';
 import { BusinessTypeConfig } from '../services/businessMetricsService';

@@ -1,4 +1,5 @@
 import { useMemo, useEffect } from 'react';
+import './ReportTierStep.css';
 import { CustomReportData } from '../../../types/allTypesAndInterfaces';
 import {
   useTierPricing,
@@ -6,6 +7,7 @@ import {
   formatPrice as formatPriceHelper,
 } from '../hooks/useReportPricing';
 import { FaBrain, FaUsers, FaDollarSign, FaStar, FaChartLine } from 'react-icons/fa';
+import { getPriceNumber as getPriceNumberHelper } from '../../../utils/helperFunctions';
 
 interface ReportTierStepProps {
   formData: CustomReportData;
@@ -120,11 +122,9 @@ const ReportTierStep = ({
     return formatPriceHelper(price, isLoadingPrices);
   };
 
-  // Helper to extract price number for display (removes $ and commas)
+  // Helper to extract price number for display
   const getPriceNumber = (price: number | null): string => {
-    if (price === null) return 'N/A';
-    if (isLoadingPrices) return '...';
-    return price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    return getPriceNumberHelper(price, isLoadingPrices);
   };
 
   // For location reports, show dynamic pricing from API
@@ -300,7 +300,7 @@ const ReportTierStep = ({
         <div className="grid grid-cols-[repeat(auto-fit,minmax(18.75rem,1fr))] gap-7 mb-[3.75rem] max-md:grid-cols-1 max-md:gap-5">
           {/* Basic Tier */}
           <div
-            className={`relative bg-white border-2 rounded-2xl py-5 px-7 flex flex-col overflow-hidden shadow-[0_0.125rem_0.5rem_rgba(0,0,0,0.04)] cursor-pointer animate-fade-in-up-lg pricing-card-basic-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-[#d8d8d8] hover:shadow-[0_0.5rem_1.5rem_rgba(0,0,0,0.08)] hover:-translate-y-1 ${currentTier === 'basic' ? 'border-[3px] border-[rgba(72,158,70,0.7)] shadow-[0_0.5rem_1.5rem_rgba(72,158,70,0.25)]' : 'border-[rgba(72,158,70,0.45)] shadow-[0_0.4rem_1.2rem_rgba(72,158,70,0.12)]'} ${disabled || !tierAvailability.basic ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
+            className={`relative bg-white border-2 rounded-2xl py-5 px-7 flex flex-col overflow-hidden shadow-[0_0.125rem_0.5rem_rgba(0,0,0,0.04)] cursor-pointer pricing-card-basic-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-[#d8d8d8] hover:shadow-[0_0.5rem_1.5rem_rgba(0,0,0,0.08)] hover:-translate-y-1 ${currentTier === 'basic' ? 'border-[3px] border-[rgba(72,158,70,0.7)] shadow-[0_0.5rem_1.5rem_rgba(72,158,70,0.25)]' : 'border-[rgba(72,158,70,0.45)] shadow-[0_0.4rem_1.2rem_rgba(72,158,70,0.12)]'} ${disabled || !tierAvailability.basic ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
             style={{ animationDelay: '0.1s' }}
             role="button"
             tabIndex={0}
@@ -385,7 +385,7 @@ const ReportTierStep = ({
 
           {/* Standard Tier */}
           <div
-            className={`relative bg-white border-2 rounded-2xl py-5 px-7 flex flex-col overflow-visible shadow-[0_0.125rem_0.5rem_rgba(0,0,0,0.04)] cursor-pointer animate-fade-in-up-lg pricing-card-standard-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0.75rem_2rem_rgba(125,0,184,0.16)] hover:-translate-y-1 ${currentTier === 'standard' ? 'border-[3px] border-[rgba(125,0,184,0.7)] shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.25)]' : 'border-gem shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.12)]'} ${disabled || !tierAvailability.standard ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
+            className={`relative bg-white border-2 rounded-2xl py-5 px-7 flex flex-col overflow-visible shadow-[0_0.125rem_0.5rem_rgba(0,0,0,0.04)] cursor-pointer pricing-card-standard-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0.75rem_2rem_rgba(125,0,184,0.16)] hover:-translate-y-1 ${currentTier === 'standard' ? 'border-[3px] border-[rgba(125,0,184,0.7)] shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.25)]' : 'border-gem shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.12)]'} ${disabled || !tierAvailability.standard ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
             style={{ animationDelay: '0.2s', background: 'linear-gradient(135deg, rgba(125,0,184,0.02) 0%, rgba(72,158,70,0.02) 100%)' }}
             role="button"
             tabIndex={0}
@@ -474,7 +474,7 @@ const ReportTierStep = ({
 
           {/* Premium Tier */}
           <div
-            className={`relative border-2 rounded-2xl py-5 px-7 flex flex-col overflow-visible shadow-[0_0.6rem_1.8rem_rgba(125,0,184,0.18)] cursor-pointer animate-fade-in-up-lg pricing-card-featured-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0.85rem_2.2rem_rgba(125,0,184,0.22)] hover:-translate-y-1 ${currentTier === 'premium' ? 'border-[3px] border-[rgba(125,0,184,0.7)] shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.25)]' : 'border-[rgba(125,0,184,0.55)]'} ${disabled || !tierAvailability.premium ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
+            className={`relative border-2 rounded-2xl py-5 px-7 flex flex-col overflow-visible shadow-[0_0.6rem_1.8rem_rgba(125,0,184,0.18)] cursor-pointer pricing-card-featured-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0.85rem_2.2rem_rgba(125,0,184,0.22)] hover:-translate-y-1 ${currentTier === 'premium' ? 'border-[3px] border-[rgba(125,0,184,0.7)] shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.25)]' : 'border-[rgba(125,0,184,0.55)]'} ${disabled || !tierAvailability.premium ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
             style={{ animationDelay: '0.3s', background: 'linear-gradient(135deg, rgba(125,0,184,0.03) 0%, rgba(25,128,42,0.02) 100%)' }}
             role="button"
             tabIndex={0}

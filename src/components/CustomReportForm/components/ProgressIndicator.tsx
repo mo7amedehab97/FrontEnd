@@ -47,7 +47,7 @@ const ProgressIndicator = ({
   return (
     <div className="px-4 sm:px-6 py-2 border-b border-gray-200">
 
-      <div className={`flex items-center justify-between ${hideLabels ? '' : ''}`}>
+      <div className="flex items-center justify-between">
         {visibleSteps.map((step, index) => {
           const visualStepNumber = index + 1;
           const actualStepNumber = getActualStepNumber(index);
@@ -77,19 +77,21 @@ const ProgressIndicator = ({
                   <span className="text-xs font-semibold">{visualStepNumber}</span>
                 )}
               </button>
-              <div className="mt-1 text-center">
-                <p
-                  className={`text-xs font-medium ${isCurrent
-                      ? 'text-primary'
-                      : isCompleted
-                        ? 'text-green-600'
-                        : 'text-gray-600'
-                    }`}
-                >
-                  {step.title}
-                </p>
-                <p className="text-xs text-gray-500 hidden lg:block">{step.description}</p>
-              </div>
+              {!hideLabels && (
+                <div className="mt-1 text-center">
+                  <p
+                    className={`text-xs font-medium ${isCurrent
+                        ? 'text-primary'
+                        : isCompleted
+                          ? 'text-green-600'
+                          : 'text-gray-600'
+                      }`}
+                  >
+                    {step.title}
+                  </p>
+                  <p className="text-xs text-gray-500 hidden lg:block">{step.description}</p>
+                </div>
+              )}
             </div>
           );
         })}
