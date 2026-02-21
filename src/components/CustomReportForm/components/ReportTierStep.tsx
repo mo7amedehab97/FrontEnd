@@ -385,7 +385,7 @@ const ReportTierStep = ({
 
           {/* Standard Tier */}
           <div
-            className={`relative bg-white border-2 rounded-2xl py-5 px-7 flex flex-col overflow-visible shadow-[0_0.125rem_0.5rem_rgba(0,0,0,0.04)] cursor-pointer pricing-card-standard-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0.75rem_2rem_rgba(125,0,184,0.16)] hover:-translate-y-1 ${currentTier === 'standard' ? 'border-[3px] border-[rgba(125,0,184,0.7)] shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.25)]' : 'border-gem shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.12)]'} ${disabled || !tierAvailability.standard ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
+            className={`relative bg-white border-2 rounded-2xl pt-10 pb-5 px-7 flex flex-col overflow-visible shadow-[0_0.125rem_0.5rem_rgba(0,0,0,0.04)] cursor-pointer pricing-card-standard-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0.75rem_2rem_rgba(125,0,184,0.16)] hover:-translate-y-1 ${currentTier === 'standard' ? 'border-[3px] border-[rgba(125,0,184,0.7)] shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.25)]' : 'border-gem shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.12)]'} ${disabled || !tierAvailability.standard ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
             style={{ animationDelay: '0.2s', background: 'linear-gradient(135deg, rgba(125,0,184,0.02) 0%, rgba(72,158,70,0.02) 100%)' }}
             role="button"
             tabIndex={0}
@@ -474,7 +474,7 @@ const ReportTierStep = ({
 
           {/* Premium Tier */}
           <div
-            className={`relative border-2 rounded-2xl py-5 px-7 flex flex-col overflow-visible shadow-[0_0.6rem_1.8rem_rgba(125,0,184,0.18)] cursor-pointer pricing-card-featured-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0.85rem_2.2rem_rgba(125,0,184,0.22)] hover:-translate-y-1 ${currentTier === 'premium' ? 'border-[3px] border-[rgba(125,0,184,0.7)] shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.25)]' : 'border-[rgba(125,0,184,0.55)]'} ${disabled || !tierAvailability.premium ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
+            className={`relative border-2 rounded-2xl pt-10 pb-5 px-7 flex flex-col overflow-visible shadow-[0_0.6rem_1.8rem_rgba(125,0,184,0.18)] cursor-pointer pricing-card-featured-glow transition-all duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:shadow-[0_0.85rem_2.2rem_rgba(125,0,184,0.22)] hover:-translate-y-1 ${currentTier === 'premium' ? 'border-[3px] border-[rgba(125,0,184,0.7)] shadow-[0_0.5rem_1.5rem_rgba(125,0,184,0.25)]' : 'border-[rgba(125,0,184,0.55)]'} ${disabled || !tierAvailability.premium ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}
             style={{ animationDelay: '0.3s', background: 'linear-gradient(135deg, rgba(125,0,184,0.03) 0%, rgba(25,128,42,0.02) 100%)' }}
             role="button"
             tabIndex={0}
