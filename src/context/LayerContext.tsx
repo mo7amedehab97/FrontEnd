@@ -932,8 +932,6 @@ export function LayerProvider(props: { children: ReactNode }) {
   }, [selectedContainerType]);
 
   async function switchPopulationLayer() {
-    if (!includePopulation && includeIncome) handleIncomeLayer(false);
-    if (!includePopulation && includeRealEstate) handleRealEstateLayer(false);
     const shouldInclude = !includePopulation;
     handlePopulationLayer(shouldInclude);
   }
@@ -1243,8 +1241,6 @@ export function LayerProvider(props: { children: ReactNode }) {
   );
 
   async function switchIncomeLayer() {
-    if (!includeIncome && includePopulation) handlePopulationLayer(false);
-    if (!includeIncome && includeRealEstate) handleRealEstateLayer(false);
     const shouldInclude = !includeIncome;
     handleIncomeLayer(shouldInclude);
   }
@@ -1363,8 +1359,6 @@ export function LayerProvider(props: { children: ReactNode }) {
   );
 
   async function switchRealEstateLayer() {
-    if (!includeRealEstate && includePopulation) handlePopulationLayer(false);
-    if (!includeRealEstate && includeIncome) handleIncomeLayer(false);
     const shouldInclude = !includeRealEstate;
     handleRealEstateLayer(shouldInclude);
   }
