@@ -328,7 +328,6 @@ export function useMapLayers() {
 
               // Preload street view checks for all features in this collection
               // This runs in the background and doesn't block layer rendering
-              // Skip street view checks for intelligent layers (population/income)
               if (!isIntelligentLayer(featureCollection)) {
                 preloadStreetViewChecks(featureCollection).catch(error => {
                   console.error('Error preloading street view checks:', error);
@@ -694,30 +693,14 @@ export function useMapLayers() {
 
                     const [lng, lat] = coordinates;
 
-                    // Skip street view checks for intelligent layers (population/income)
-                    if (!isIntelligentLayer(featureCollection)) {
+                    if (isIntelligentLayer(featureCollection)) {
+                      popup.setHTML(generatePopupContent(properties, coordinates, false, false));
+                    } else {
                       debouncedStreetViewCheck(lat, lng, hasStreetView => {
                         if (popup) {
-                          const updatedContent = generatePopupContent(
-                            properties,
-                            coordinates,
-                            false,
-                            hasStreetView
-                          );
-                          popup.setHTML(updatedContent);
+                          popup.setHTML(generatePopupContent(properties, coordinates, false, hasStreetView));
                         }
                       });
-                    } else {
-                      // For intelligent layers, show popup without street view check
-                      if (popup) {
-                        const updatedContent = generatePopupContent(
-                          properties,
-                          coordinates,
-                          false,
-                          false // No street view for intelligent layers
-                        );
-                        popup.setHTML(updatedContent);
-                      }
                     }
 
                     if (popup) {

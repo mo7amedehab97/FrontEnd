@@ -11,7 +11,6 @@ import BottomDrawer from '../../components/BottomDrawer/BottomDrawer';
 import { useLayerContext } from '../../context/LayerContext';
 import { useMeasurement } from '../../hooks/useMeasurement';
 import { Spinner } from '../../components/common';
-import { isIntelligentLayer } from '../../utils/layerUtils';
 
 const Home = () => {
   const { isAuthenticated, authLoading } = useAuth();
@@ -112,12 +111,7 @@ export function HomeContent() {
     setSelectedHomeTab(tab);
     console.log('handleTabSwitch received:', tab);
     setSelectedContainerType(tab === 'CATALOG' ? 'Catalogue' : 'Layer');
-    
-    // Preserve intelligent layers when switching tabs
-    setGeoPoints(prevPoints => {
-      return prevPoints.filter(point => isIntelligentLayer(point));
-    });
-    
+    setGeoPoints([]);
     setMarkers([]);
     setMeasurements([]);
   };
