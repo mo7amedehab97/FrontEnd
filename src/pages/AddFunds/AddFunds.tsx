@@ -29,10 +29,19 @@ const AddFundsForm: React.FC = () => {
     // Only allow digits (whole numbers only)
     if (value === '' || /^\d+$/.test(value)) {
       setCost(value);
-      setInputError(null); // Clear error when valid input
+      setInputError(null);
     } else {
       setInputError('Only whole dollar amounts are allowed (no decimals)');
     }
+  };
+
+  const handleCostFocus = () => {
+    // Strip the ".00" formatting so the user can freely edit the raw number
+    const raw = parseInt(cost, 10);
+    if (!isNaN(raw)) {
+      setCost(String(raw));
+    }
+    setInputError(null);
   };
 
   const handleCostBlur = () => {
@@ -102,6 +111,7 @@ const AddFundsForm: React.FC = () => {
                 type="text"
                 value={cost}
                 onChange={handleCostChange}
+                onFocus={handleCostFocus}
                 onBlur={handleCostBlur}
                 className="w-full p-3 border border-gray-200 shadow-sm rounded-md focus:outline-none"
                 placeholder="Amount (USD) - whole dollars only"

@@ -699,6 +699,11 @@ function CheckoutBilling({ Name }: { Name: string }) {
       return;
     }
 
+    // When a report is in the cart, the API requires report_potential_business_type
+    if (checkout.report && !checkout.report_potential_business_type?.trim()) {
+      return;
+    }
+
     setIsCalculatingCost(true);
 
     try {
@@ -746,7 +751,9 @@ function CheckoutBilling({ Name }: { Name: string }) {
 
       setCartCostResponse(response.data);
     } catch (error) {
-      // Keep previous cart cost so user still sees price; only re-throw so modal can show error
+      console.error('Failed to calculate cart cost:', error);
+      setCartCostResponse(null);
+      // Re-throw so modal/caller can show error to user
       throw error;
     } finally {
       setIsCalculatingCost(false);
@@ -1013,6 +1020,7 @@ function CheckoutBilling({ Name }: { Name: string }) {
     checkout.datasets,
     checkout.intelligences,
     checkout.report,
+    checkout.report_potential_business_type,
     checkout.country_name,
     checkout.city_name,
     authResponse?.localId,
@@ -1038,7 +1046,12 @@ function CheckoutBilling({ Name }: { Name: string }) {
       <div className="w-full lg:w-1/3 flex flex-col overflow-hidden">
         {Name === 'area' ? (
           <div className="w-full h-full flex flex-col px-4 sm:px-6 lg:px-8 overflow-y-auto">
-            <div className="text-2xl pt-4 font-semibold mb-4 flex-shrink-0">Area Intelligence</div>
+            <div className="text-2xl pt-4 font-semibold mb-2 flex-shrink-0">Area Intelligence</div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 mb-4 flex-shrink-0">
+              <p className="text-sm text-yellow-800">
+                <span className="font-semibold">Note:</span> You must choose country, city and area intelligence type to see the price.
+              </p>
+            </div>
             <div className="flex flex-col items-stretch space-y-6 flex-1 pb-6">
               <div
                 className={getAreaCardClasses('Population')}
@@ -1543,6 +1556,12 @@ function CheckoutBilling({ Name }: { Name: string }) {
           <div className="w-full h-full flex flex-col overflow-hidden">
             <div className="w-full flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
               <div className="flex flex-col my-5 w-full">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 mb-4">
+                  <p className="text-sm text-yellow-800">
+                    <span className="font-semibold">Note:</span> You must choose country, city and dataset type to see the price.
+                  </p>
+                </div>
+
                 <div className="flex justify-between mb-4">
                   <label className="font-bold">What are you looking for?</label>
                   <button
