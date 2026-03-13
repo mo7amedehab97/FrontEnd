@@ -723,6 +723,7 @@ function CheckoutBilling({ Name }: { Name: string }) {
 
     // When a report is in the cart, the API requires report_potential_business_type
     if (checkout.report && !checkout.report_potential_business_type?.trim()) {
+      toast.error('Please select a Report Potential Business Type to see pricing.');
       return;
     }
 

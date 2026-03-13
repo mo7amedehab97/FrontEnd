@@ -212,7 +212,7 @@ const PaymentMethodForm: React.FC = () => {
       return;
     }
 
-    // If phone is already on file, the user has previously verified it — skip OTP
+    // Profile phone was already verified when added; no separate OTP step for payment method.
     savePaymentMethod();
   };
 

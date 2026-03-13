@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { translations } from './translations';
 import LandingNavbar from '../../components/Landing/LandingNavbar';
 import LandingHero from '../../components/Landing/LandingHero';
@@ -10,41 +9,15 @@ import LandingDataSources from '../../components/Landing/LandingDataSources';
 import LandingCTA from '../../components/Landing/LandingCTA';
 import LandingFooter from '../../components/Landing/LandingFooter';
 
-const LANG_STORAGE_KEY = 'landing-lang';
-
-function getInitialLang(searchParams: URLSearchParams): 'en' | 'ar' {
-  const fromUrl = searchParams.get('lang');
-  if (fromUrl === 'ar' || fromUrl === 'en') return fromUrl;
-
-  try {
-    const saved = localStorage.getItem(LANG_STORAGE_KEY);
-    if (saved === 'ar') return 'ar';
-  } catch {
-    // localStorage unavailable (private browsing, etc.)
-  }
-  return 'en';
-}
-
 const Landing = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [lang, setLangState] = useState<'en' | 'ar'>(() => getInitialLang(searchParams));
+  const [lang, setLangState] = useState<'en' | 'ar'>('en');
 
   const setLang = useCallback((newLang: 'en' | 'ar') => {
     setLangState(newLang);
-    setSearchParams((prev) => {
-      prev.set('lang', newLang);
-      return prev;
-    }, { replace: true });
-    try {
-      localStorage.setItem(LANG_STORAGE_KEY, newLang);
-    } catch {
-      // localStorage unavailable
-    }
-  }, [setSearchParams]);
+  }, []);
 
   useEffect(() => {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = lang;
   }, [lang]);
 
   const t = translations[lang];
