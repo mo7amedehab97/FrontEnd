@@ -776,8 +776,6 @@ function CheckoutBilling({ Name }: { Name: string }) {
     } catch (error) {
       console.error('Failed to calculate cart cost:', error);
       setCartCostResponse(null);
-      // Re-throw so modal/caller can show error to user
-      throw error;
     } finally {
       setIsCalculatingCost(false);
     }
