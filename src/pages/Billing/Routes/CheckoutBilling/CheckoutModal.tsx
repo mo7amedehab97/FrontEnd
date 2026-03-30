@@ -91,16 +91,11 @@ function CheckoutModal({
 
   const handleIntelligenceToggle = useCallback(
     (intelligenceName: string) => {
-      const normalized = intelligenceName.toLowerCase().replace(/\s+/g, '_');
-      const trimmed = intelligenceName.trim();
+      const normalized = intelligenceName.trim().toLowerCase().replace(/\s+/g, '_');
       let formatted: 'Income' | 'Population' | 'Real Estate' | null = null;
-      if (normalized === 'population' || trimmed === 'Population') formatted = 'Population';
-      else if (normalized === 'income' || trimmed === 'Income') formatted = 'Income';
-      else if (
-        normalized === 'real_estate' ||
-        normalized === 'realestate' ||
-        trimmed === 'Real Estate'
-      )
+      if (normalized === 'population') formatted = 'Population';
+      else if (normalized === 'income') formatted = 'Income';
+      else if (normalized === 'real_estate' || normalized === 'realestate')
         formatted = 'Real Estate';
       if (formatted) dispatch({ type: 'toggleIntelligence', payload: formatted });
     },

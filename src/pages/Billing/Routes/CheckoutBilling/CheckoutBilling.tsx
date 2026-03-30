@@ -190,7 +190,7 @@ function CheckoutBilling({ Name }: { Name: string }) {
   } | null>(null);
 
   const { authResponse } = useAuth();
-  const isGuest = !!authResponse && isGuestUser(authResponse);
+  const isGuest = isGuestUser(authResponse);
   const { openModal } = useUIContext();
   const { checkout, dispatch } = useBillingContext();
 
