@@ -970,12 +970,6 @@ function CheckoutBilling({ Name }: { Name: string }) {
     [fetchReportDetailsForView]
   );
 
-  // Can always calculate cost if we have categories loaded and location set
-  const canCalculateCost = useMemo(
-    () => Object.keys(categories).length > 0 && checkout.country_name && checkout.city_name,
-    [categories, checkout.country_name, checkout.city_name]
-  );
-
   // Filter categories based on search query (fuzzy, supports spaces and multi-word)
   const filteredCategories = useMemo(() => {
     return Object.entries(categories).reduce((acc, [category, types]) => {
