@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { formatSubcategoryName, fuzzyMatchCategoryType } from '../../../../utils/helperFunctions';
 import urls from '../../../../urls.json';
-import { useAuth, isGuestUser } from '../../../../context/AuthContext';
+import { useAuth } from '../../../../context/AuthContext';
 import apiRequest from '../../../../services/apiRequest';
 import { MdAttachMoney, MdCheckCircle, MdClose, MdHome, MdSearch } from 'react-icons/md';
 import { CategoryData } from '../../../../types/allTypesAndInterfaces';
-import { useUIContext } from '../../../../context/UIContext';
 import { useBillingContext, type ReportTier } from '../../../../context/BillingContext';
 import ItemSelectionView from './ItemSelectionView';
 import CheckoutModal from './CheckoutModal';
@@ -28,6 +27,16 @@ interface SelectedItemData {
   isCurrentlyOwned?: boolean;
   expiration?: string;
   explanation?: string;
+}
+
+interface PurchaseItem {
+  cost: number;
+  description?: string;
+  data_variables?: Record<string, string>;
+  is_currently_owned: boolean;
+  expiration: string | null;
+  explanation: string;
+  [key: string]: unknown;
 }
 
 interface PriceData {
@@ -190,8 +199,6 @@ function CheckoutBilling({ Name }: { Name: string }) {
   } | null>(null);
 
   const { authResponse } = useAuth();
-  const isGuest = isGuestUser(authResponse);
-  const { openModal } = useUIContext();
   const { checkout, dispatch } = useBillingContext();
 
   const hasCountryAndCity = !!(checkout.country_name?.trim() && checkout.city_name?.trim());
@@ -914,19 +921,19 @@ function CheckoutBilling({ Name }: { Name: string }) {
     const config = itemConfig[type];
     if (config) {
       const items = priceData?.[config.arrayKey];
-      const item = items?.find((i: any) => i[config.matchKey] === key);
+      const item = items?.find((i: PurchaseItem) => i[config.matchKey] === key) as PurchaseItem | undefined;
 
       if (item) {
         setSelectedItem({
           name,
           type,
-          description: (item as any).description || '',
-          dataVariables: convertDataVariables((item as any).data_variables),
-          price: (item as any).cost,
+          description: item.description || '',
+          dataVariables: convertDataVariables(item.data_variables),
+          price: item.cost,
           itemKey: key,
-          isCurrentlyOwned: (item as any).is_currently_owned,
-          expiration: (item as any).expiration || undefined,
-          explanation: (item as any).explanation,
+          isCurrentlyOwned: item.is_currently_owned,
+          expiration: item.expiration || undefined,
+          explanation: item.explanation,
         });
         return;
       }
@@ -1040,7 +1047,7 @@ function CheckoutBilling({ Name }: { Name: string }) {
   );
 
   const handleRemoveType = useCallback(
-    (type: string, _layerId: number, _isExcluded: boolean) => {
+    (type: string) => {
       // Remove from cart
       if (checkout.datasets.includes(type)) {
         dispatch({ type: 'toggleDataset', payload: type });
