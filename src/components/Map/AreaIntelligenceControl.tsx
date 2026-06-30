@@ -10,9 +10,12 @@ import { useAuth, isGuestUser } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import apiRequest from '../../services/apiRequest';
 import urls from '../../urls.json';
-import IntelligencePaywallModal, {
-  type IntelligencePurchaseItem,
-} from './IntelligencePaywallModal';
+import { IntelligenceLayerSettings } from './IntelligenceLayerSettings';
+import { IntelligencePaywallModal } from './IntelligencePaywallModal';
+import {
+  DEFAULT_INTELLIGENCE_FIELDS,
+  IntelligenceLayerKey,
+} from '../../utils/layerUtils';
 
 type IntelligenceType = 'Population' | 'Income' | 'Real Estate';
 
@@ -34,6 +37,10 @@ export const AreaIntelligeneControl: React.FC = () => {
     includePopulation,
     includeIncome,
     includeRealEstate,
+    isChangingOpacityField,
+    changePopulationSettings,
+    changeIncomeSettings,
+    changeRealEstateSettings,
   } = useLayerContext();
   const {
     populationSample,
@@ -42,6 +49,16 @@ export const AreaIntelligeneControl: React.FC = () => {
     setIncomeSample,
     realEstateSample,
     setRealEstateSample,
+    populationField,
+    incomeField,
+    realEstateField,
+    populationColor,
+    incomeColor,
+    realEstateColor,
+    populationAvailableProperties,
+    incomeAvailableProperties,
+    realEstateAvailableProperties,
+    setLayerAvailableProperties,
   } = useIntelligenceViewport();
   const { authResponse } = useAuth();
   const navigate = useNavigate();
@@ -70,6 +87,48 @@ export const AreaIntelligeneControl: React.FC = () => {
   useEffect(() => {
     close();
   }, [selectedContainerType]);
+
+  const fetchLayerProperties = useCallback(
+    async (layer: IntelligenceLayerKey, existingProperties: string[]) => {
+      if (existingProperties.length > 0) {
+        return;
+      }
+
+      try {
+        const response = await apiRequest({
+          url: urls.fetch_intelligence_table_columns,
+          method: 'POST',
+          body: {
+            population: layer === 'population',
+            income: layer === 'income',
+            real_estate: layer === 'real_estate',
+          },
+          isAuthRequest: true,
+        });
+        const columns = (response.data?.data ?? []) as string[];
+        if (columns.length > 0) {
+          setLayerAvailableProperties(layer, columns);
+        }
+      } catch (error) {
+        console.error(`Failed to fetch ${layer} properties:`, error);
+        setLayerAvailableProperties(layer, [DEFAULT_INTELLIGENCE_FIELDS[layer]]);
+      }
+    },
+    [setLayerAvailableProperties]
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    void fetchLayerProperties('population', populationAvailableProperties);
+    void fetchLayerProperties('income', incomeAvailableProperties);
+    void fetchLayerProperties('real_estate', realEstateAvailableProperties);
+  }, [
+    isOpen,
+    fetchLayerProperties,
+    populationAvailableProperties,
+    incomeAvailableProperties,
+    realEstateAvailableProperties,
+  ]);
 
   /**
    * Check cost for an intelligence layer before enabling it.
@@ -264,6 +323,36 @@ export const AreaIntelligeneControl: React.FC = () => {
     }
   };
 
+  const handlePopulationPropertyChange = async (field: string) => {
+    if (!field || field === populationField) return;
+    await changePopulationSettings(field, populationColor);
+  };
+
+  const handlePopulationColorChange = async (color: string) => {
+    if (!color || color === populationColor) return;
+    await changePopulationSettings(populationField, color);
+  };
+
+  const handleIncomePropertyChange = async (field: string) => {
+    if (!field || field === incomeField) return;
+    await changeIncomeSettings(field, incomeColor);
+  };
+
+  const handleIncomeColorChange = async (color: string) => {
+    if (!color || color === incomeColor) return;
+    await changeIncomeSettings(incomeField, color);
+  };
+
+  const handleRealEstatePropertyChange = async (field: string) => {
+    if (!field || field === realEstateField) return;
+    await changeRealEstateSettings(field, realEstateColor);
+  };
+
+  const handleRealEstateColorChange = async (color: string) => {
+    if (!color || color === realEstateColor) return;
+    await changeRealEstateSettings(realEstateField, color);
+  };
+
   return (
     <>
       <div ref={containerRef} className="relative z-[101]">
@@ -318,15 +407,16 @@ export const AreaIntelligeneControl: React.FC = () => {
               )}
 
               {/* Population Intelligence */}
-              <label
-                htmlFor="population-toggle-map"
+              <div
                 className={`
-                  flex items-center justify-between
                   border-t border-gem/20 mt-2 pt-2
-                  bg-white/95 p-2 sm:p-3 rounded-md cursor-pointer
-                  gap-1.5 sm:gap-1
+                  bg-white/95 p-2 sm:p-3 rounded-md
                 `}
               >
+                <label
+                  htmlFor="population-toggle-map"
+                  className="flex items-center justify-between gap-1.5 sm:gap-1 cursor-pointer"
+                >
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
                   <div className="text-gem flex-shrink-0">
                     <svg
@@ -488,18 +578,31 @@ export const AreaIntelligeneControl: React.FC = () => {
                     />
                   </div>
                 </div>
-              </label>
+                </label>
+
+                {includePopulation && (
+                  <IntelligenceLayerSettings
+                    selectedProperty={populationField}
+                    selectedColor={populationColor}
+                    availableProperties={populationAvailableProperties}
+                    isUpdating={isChangingOpacityField}
+                    onPropertyChange={handlePopulationPropertyChange}
+                    onColorChange={handlePopulationColorChange}
+                  />
+                )}
+              </div>
 
               {/* Income Intelligence */}
-              <label
-                htmlFor="income-toggle-map"
+              <div
                 className={`
-                  flex items-center justify-between
                   border-t border-gem/20 mt-2 pt-2
-                  bg-white/95 p-2 sm:p-3 rounded-md cursor-pointer
-                  gap-1.5 sm:gap-0
+                  bg-white/95 p-2 sm:p-3 rounded-md
                 `}
               >
+                <label
+                  htmlFor="income-toggle-map"
+                  className="flex items-center justify-between gap-1.5 sm:gap-0 cursor-pointer"
+                >
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
                   <div className="text-gem flex-shrink-0">
                     <MdAttachMoney size={20} className="sm:w-6 sm:h-6" />
@@ -607,18 +710,31 @@ export const AreaIntelligeneControl: React.FC = () => {
                     />
                   </div>
                 </div>
-              </label>
+                </label>
+
+                {includeIncome && (
+                  <IntelligenceLayerSettings
+                    selectedProperty={incomeField}
+                    selectedColor={incomeColor}
+                    availableProperties={incomeAvailableProperties}
+                    isUpdating={isChangingOpacityField}
+                    onPropertyChange={handleIncomePropertyChange}
+                    onColorChange={handleIncomeColorChange}
+                  />
+                )}
+              </div>
 
               {/* Real Estate Intelligence */}
-              <label
-                htmlFor="real-estate-toggle-map"
+              <div
                 className={`
-                  flex items-center justify-between
                   border-t border-gem/20 mt-2 pt-2
-                  bg-white/95 p-2 sm:p-3 rounded-md cursor-pointer
-                  gap-1.5 sm:gap-0
+                  bg-white/95 p-2 sm:p-3 rounded-md
                 `}
               >
+                <label
+                  htmlFor="real-estate-toggle-map"
+                  className="flex items-center justify-between gap-1.5 sm:gap-0 cursor-pointer"
+                >
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
                   <div className="text-gem flex-shrink-0">
                     <MdHome size={20} className="sm:w-6 sm:h-6" />
@@ -728,7 +844,19 @@ export const AreaIntelligeneControl: React.FC = () => {
                     />
                   </div>
                 </div>
-              </label>
+                </label>
+
+                {includeRealEstate && (
+                  <IntelligenceLayerSettings
+                    selectedProperty={realEstateField}
+                    selectedColor={realEstateColor}
+                    availableProperties={realEstateAvailableProperties}
+                    isUpdating={isChangingOpacityField}
+                    onPropertyChange={handleRealEstatePropertyChange}
+                    onColorChange={handleRealEstateColorChange}
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}

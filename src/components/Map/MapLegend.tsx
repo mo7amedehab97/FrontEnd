@@ -1,5 +1,6 @@
 import { MapFeatures } from '../../types/allTypesAndInterfaces';
 import defaultMapConfig from '../../mapConfig.json';
+import { getIntelligenceLayerColor } from '../../utils/layerUtils';
 
 function MapLegend(legendElement: HTMLDivElement, geoPoints: MapFeatures[]) {
   // Clear existing content
@@ -35,7 +36,7 @@ function MapLegend(legendElement: HTMLDivElement, geoPoints: MapFeatures[]) {
       const item = document.createElement('div');
       item.className = 'flex items-center gap-2 mb-1';
       item.innerHTML = `
-        <div class="w-3 h-3 rounded-full border border-[${defaultMapConfig.circleStrokeColor}]  " style="background-color: ${point.points_color}"></div>
+        <div class="w-3 h-3 rounded-full border border-[${defaultMapConfig.circleStrokeColor}]  " style="background-color: ${getIntelligenceLayerColor(point)}"></div>
         <span class="text-sm">${point.layer_legend}</span>
       `;
       content.appendChild(item);

@@ -14,7 +14,7 @@ import urls from '../../urls.json';
 import { useGridPopup } from './useGridPopup';
 import { useGridInteraction } from './useGridInteraction';
 import _ from 'lodash';
-import { isIntelligentLayer } from '../../utils/layerUtils';
+import { isIntelligentLayer, getIntelligenceLayerColor, getIntelligenceGridPaint } from '../../utils/layerUtils';
 
 import { LRUCache } from 'lru-cache';
 
@@ -346,12 +346,13 @@ export function useMapLayers() {
                       layout: {
                         visibility: featureCollection.display ? 'visible' : 'none',
                       },
-                      paint: {
-                        'fill-color':
-                          featureCollection.points_color || defaultMapConfig.defaultColor,
-                        'fill-opacity': ['/', ['get', 'backend_opacity'], 100],
-                        'fill-outline-color': '#000',
-                      },
+                      paint: isIntelligentLayer(featureCollection)
+                        ? getIntelligenceGridPaint(getIntelligenceLayerColor(featureCollection))
+                        : {
+                            'fill-color': getIntelligenceLayerColor(featureCollection),
+                            'fill-opacity': ['/', ['get', 'backend_opacity'], 100],
+                            'fill-outline-color': '#000',
+                          },
                     });
 
                     // Add outline layer for polygons
@@ -469,9 +470,9 @@ export function useMapLayers() {
                     layout: {
                       visibility: featureCollection.display ? 'visible' : 'none',
                     },
-                    paint: getGridPaint(
-                      featureCollection.points_color || defaultMapConfig.defaultColor
-                    ),
+                    paint: isIntelligentLayer(featureCollection)
+                      ? getIntelligenceGridPaint(getIntelligenceLayerColor(featureCollection))
+                      : getGridPaint(getIntelligenceLayerColor(featureCollection)),
                   });
 
                   // Store IDs

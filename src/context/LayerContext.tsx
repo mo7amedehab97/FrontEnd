@@ -23,16 +23,17 @@ import {
   LayerState,
   MapFeatures,
   Insights,
+  IntelligenceViewportResponse,
 } from '../types/allTypesAndInterfaces';
 import urls from '../urls.json';
 import { useCatalogContext } from './CatalogContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { processCityData, getDefaultLayerColor, colorOptions } from '../utils/helperFunctions';
+import { processCityData, getDefaultLayerColor } from '../utils/helperFunctions';
 import apiRequest from '../services/apiRequest';
 import { defaultMapConfig } from '../hooks/map/useMapInitialization';
 import { useMapContext } from './MapContext';
-import { isIntelligentLayer } from '../utils/layerUtils';
+import { isIntelligentLayer, parseIntelligenceApiResponse, getIntelligenceLayerColor, buildIntelligenceLayerLegend } from '../utils/layerUtils';
 import _ from 'lodash';
 import { useIntelligenceViewport } from './IntelligenceViewPortContext';
 
@@ -48,8 +49,21 @@ export function LayerProvider(props: { children: ReactNode }) {
     setPendingActivation,
     populationSample,
     incomeSample,
-    realEstateSample
-  } = useIntelligenceViewport(); // get the shared state
+    realEstateSample,
+    populationField,
+    setPopulationField,
+    incomeField,
+    setIncomeField,
+    realEstateField,
+    setRealEstateField,
+    populationColor,
+    setPopulationColor,
+    incomeColor,
+    setIncomeColor,
+    realEstateColor,
+    setRealEstateColor,
+    setLayerAvailableProperties,
+  } = useIntelligenceViewport();
   const navigate = useNavigate();
   const { authResponse } = useAuth();
   const { children } = props;
@@ -127,6 +141,7 @@ export function LayerProvider(props: { children: ReactNode }) {
   const [includePopulation, setIncludePopulation] = useState(false);
   const [includeIncome, setIncludeIncome] = useState(false);
   const [includeRealEstate, setIncludeRealEstate] = useState(false);
+  const [isChangingOpacityField, setIsChangingOpacityField] = useState(false);
 
   const [isLoadingDataset, setIsLoadingDataset] = useState(false);
 
@@ -824,21 +839,40 @@ export function LayerProvider(props: { children: ReactNode }) {
       withRealEstate = false,
       shouldReturnFeatures = false,
       sample = false,
+      populationField: populationFieldOverride,
+      incomeField: incomeFieldOverride,
+      realEstateField: realEstateFieldOverride,
+      populationColor: populationColorOverride,
+      incomeColor: incomeColorOverride,
+      realEstateColor: realEstateColorOverride,
     }: {
       withPopulation: boolean;
       withIncome: boolean;
       withRealEstate?: boolean;
       shouldReturnFeatures?: boolean;
       sample?: boolean;
-    }): Promise<any> => {
+      populationField?: string;
+      incomeField?: string;
+      realEstateField?: string;
+      populationColor?: string;
+      incomeColor?: string;
+      realEstateColor?: string;
+    }): Promise<IntelligenceViewportResponse | null> => {
       const map = mapRef.current;
       if (!map) {
         console.warn('Map not initialized');
-        return;
+        return null;
       }
       const bounds = map.getBounds();
 
-      const reqBody = {
+      const resolvedPopulationField = populationFieldOverride ?? populationField;
+      const resolvedIncomeField = incomeFieldOverride ?? incomeField;
+      const resolvedRealEstateField = realEstateFieldOverride ?? realEstateField;
+      const resolvedPopulationColor = populationColorOverride ?? populationColor;
+      const resolvedIncomeColor = incomeColorOverride ?? incomeColor;
+      const resolvedRealEstateColor = realEstateColorOverride ?? realEstateColor;
+
+      const reqBody: Record<string, unknown> = {
         bottom_lng: bounds.getWest(),
         bottom_lat: bounds.getSouth(),
         top_lng: bounds.getEast(),
@@ -850,42 +884,95 @@ export function LayerProvider(props: { children: ReactNode }) {
         user_id: authResponse?.localId,
         sample: sample,
       };
-      
-      setViewport({
-  bottom_lng: bounds.getWest(),
-  bottom_lat: bounds.getSouth(),
-  top_lng: bounds.getEast(),
-  top_lat: bounds.getNorth(),
-  population: withPopulation,
-  income: withIncome,
-  real_estate: withRealEstate,
-  zoom_level: 7 + currentZoomLevel,
-  populationSample: populationSample,
-  incomeSample: incomeSample,
-  realEstateSample: realEstateSample,
-});
+
+      if (resolvedPopulationField) {
+        reqBody.population_field = resolvedPopulationField;
+      }
+      if (resolvedIncomeField) {
+        reqBody.income_field = resolvedIncomeField;
+      }
+      if (resolvedRealEstateField) {
+        reqBody.real_estate_field = resolvedRealEstateField;
+      }
+      if (resolvedPopulationColor) {
+        reqBody.population_color = resolvedPopulationColor;
+      }
+      if (resolvedIncomeColor) {
+        reqBody.income_color = resolvedIncomeColor;
+      }
+      if (resolvedRealEstateColor) {
+        reqBody.real_estate_color = resolvedRealEstateColor;
+      }
+
+      setViewport(prev => ({
+        ...(prev ?? {
+          population: withPopulation,
+          income: withIncome,
+          real_estate: withRealEstate,
+          populationSample,
+          incomeSample,
+          realEstateSample,
+        }),
+        bottom_lng: bounds.getWest(),
+        bottom_lat: bounds.getSouth(),
+        top_lng: bounds.getEast(),
+        top_lat: bounds.getNorth(),
+        population: withPopulation,
+        income: withIncome,
+        real_estate: withRealEstate,
+        zoom_level: 7 + currentZoomLevel,
+        populationSample,
+        incomeSample,
+        realEstateSample,
+        population_field: resolvedPopulationField,
+        income_field: resolvedIncomeField,
+        real_estate_field: resolvedRealEstateField,
+        population_color: resolvedPopulationColor,
+        income_color: resolvedIncomeColor,
+        real_estate_color: resolvedRealEstateColor,
+      }));
       const res = await apiRequest({
         url: urls.fetch_intelligence_by_viewport,
         method: 'post',
         body: reqBody,
         isAuthRequest: true,
-        useCache: true,
+        useCache: false,
       });
-      if (!res.data.data) {
-        throw new Error('No data returned for current viewport');
+      const { features, metadata, available_properties: availableProperties } =
+        parseIntelligenceApiResponse(res);
+
+      if (withRealEstate) {
+        setLayerAvailableProperties('real_estate', availableProperties);
+      } else if (withIncome) {
+        setLayerAvailableProperties('income', availableProperties);
+      } else if (withPopulation) {
+        setLayerAvailableProperties('population', availableProperties);
       }
-      const features = res.data.data.features;
-      const metadata = res.data.data.metadata;
 
       if (shouldReturnFeatures) {
-        return { features, metadata };
+        return { features, metadata, available_properties: availableProperties };
       }
 
       const insights = calculateInsights(features);
       setCurrentViewportInsights(insights);
       return null;
     },
-    [currentZoomLevel, mapRef.current]
+    [
+      currentZoomLevel,
+      mapRef.current,
+      authResponse?.localId,
+      populationSample,
+      incomeSample,
+      realEstateSample,
+      populationField,
+      incomeField,
+      realEstateField,
+      populationColor,
+      incomeColor,
+      realEstateColor,
+      setViewport,
+      setLayerAvailableProperties,
+    ]
   );
 
   const fetchPopulationByViewport = (shouldReturnFeatures: boolean = false) =>
@@ -894,6 +981,8 @@ export function LayerProvider(props: { children: ReactNode }) {
       withIncome: false,
       shouldReturnFeatures,
       sample: populationSample,
+      populationField,
+      populationColor,
     });
   const fetchIncomeByViewport = (shouldReturnFeatures: boolean = false) =>
     fetchAreaIntelligenceByViewport({
@@ -901,6 +990,8 @@ export function LayerProvider(props: { children: ReactNode }) {
       withIncome: true,
       shouldReturnFeatures,
       sample: incomeSample,
+      incomeField,
+      incomeColor,
     });
   const fetchRealEstateByViewport = (shouldReturnFeatures: boolean = false) =>
     fetchAreaIntelligenceByViewport({
@@ -909,6 +1000,8 @@ export function LayerProvider(props: { children: ReactNode }) {
       withRealEstate: true,
       shouldReturnFeatures,
       sample: realEstateSample,
+      realEstateField,
+      realEstateColor,
     });
 
   useEffect(() => {
@@ -992,8 +1085,13 @@ export function LayerProvider(props: { children: ReactNode }) {
                 type: 'FeatureCollection',
                 features: features,
                 display: true,
-                points_color: metadata?.color || colorOptions[0].hex,
-                layer_legend: `Population Layer (${features?.length})`,
+                intelligence_metadata: metadata,
+                points_color: getIntelligenceLayerColor({ intelligence_metadata: metadata }),
+                layer_legend: buildIntelligenceLayerLegend(
+                  metadata,
+                  'Population Layer',
+                  features?.length
+                ),
                 is_grid: true,
                 is_intelligent: true,
                 is_fake: shouldFake,
@@ -1153,8 +1251,13 @@ export function LayerProvider(props: { children: ReactNode }) {
                 type: 'FeatureCollection',
                 features: features,
                 display: true,
-                points_color: metadata?.color || colorOptions[3].hex,
-                layer_legend: `Income Intelligence (${features?.length})`,
+                intelligence_metadata: metadata,
+                points_color: getIntelligenceLayerColor({ intelligence_metadata: metadata }),
+                layer_legend: buildIntelligenceLayerLegend(
+                  metadata,
+                  'Income Intelligence',
+                  features?.length
+                ),
                 is_grid: true,
                 is_intelligent: true,
                 is_fake: true,
@@ -1271,8 +1374,13 @@ export function LayerProvider(props: { children: ReactNode }) {
                 type: 'FeatureCollection',
                 features: features,
                 display: true,
-                points_color: metadata?.color || colorOptions[2].hex,
-                layer_legend: `Real Estate Intelligence (${features?.length})`,
+                intelligence_metadata: metadata,
+                points_color: getIntelligenceLayerColor({ intelligence_metadata: metadata }),
+                layer_legend: buildIntelligenceLayerLegend(
+                  metadata,
+                  'Real Estate Intelligence',
+                  features?.length
+                ),
                 is_grid: true,
                 is_intelligent: true,
                 is_fake: false,
@@ -1357,6 +1465,265 @@ export function LayerProvider(props: { children: ReactNode }) {
     await handleRealEstateLayer(false);
     await handleRealEstateLayer(true, true);
   }
+
+  const updatePopulationLayerData = useCallback(
+    async (nextPopulationField?: string, nextPopulationColor?: string) => {
+      const response = await fetchAreaIntelligenceByViewport({
+        withPopulation: true,
+        withIncome: false,
+        shouldReturnFeatures: true,
+        sample: populationSample,
+        populationField: nextPopulationField,
+        populationColor: nextPopulationColor,
+      });
+      if (!response) return;
+
+      const { features, metadata } = response;
+      const shouldFake = FAKE_IS_ENABLED;
+
+      setGeoPoints(prevPoints => {
+        const populationLayer = {
+          layerId: 1001,
+          type: 'FeatureCollection',
+          features: features,
+          display: true,
+          intelligence_metadata: metadata,
+          points_color: getIntelligenceLayerColor({ intelligence_metadata: metadata }),
+          layer_legend: buildIntelligenceLayerLegend(metadata, 'Population Layer', features?.length),
+          is_grid: true,
+          is_intelligent: true,
+          is_fake: shouldFake,
+          is_refetch: true,
+          basedon: 'population',
+          visualization_mode: 'grid',
+        };
+
+        const filteredPoints = prevPoints.filter(point => point.layerId !== populationLayer.layerId);
+        return [...filteredPoints, populationLayer];
+      });
+
+      setLayerDataMap(prev => ({
+        ...prev,
+        1001: features,
+      }));
+    },
+    [fetchAreaIntelligenceByViewport, populationSample, setGeoPoints, setLayerDataMap]
+  );
+
+  const updateIncomeLayerData = useCallback(
+    async (nextIncomeField?: string, nextIncomeColor?: string) => {
+      const response = await fetchAreaIntelligenceByViewport({
+        withPopulation: true,
+        withIncome: true,
+        shouldReturnFeatures: true,
+        sample: incomeSample,
+        incomeField: nextIncomeField,
+        incomeColor: nextIncomeColor,
+      });
+      if (!response) return;
+
+      const { features, metadata } = response;
+
+      setGeoPoints(prevPoints => {
+        const incomeLayer = {
+          layerId: 1003,
+          type: 'FeatureCollection',
+          features: features,
+          display: true,
+          intelligence_metadata: metadata,
+          points_color: getIntelligenceLayerColor({ intelligence_metadata: metadata }),
+          layer_legend: buildIntelligenceLayerLegend(metadata, 'Income Intelligence', features?.length),
+          is_grid: true,
+          is_intelligent: true,
+          is_fake: true,
+          is_refetch: true,
+          basedon: 'income',
+          visualization_mode: 'grid',
+        };
+
+        const filteredPoints = prevPoints.filter(point => point.layerId !== incomeLayer.layerId);
+        return [...filteredPoints, incomeLayer];
+      });
+
+      setLayerDataMap(prev => ({
+        ...prev,
+        1003: features,
+      }));
+    },
+    [fetchAreaIntelligenceByViewport, incomeSample, setGeoPoints, setLayerDataMap]
+  );
+
+  const updateRealEstateLayerData = useCallback(
+    async (nextRealEstateField?: string, nextRealEstateColor?: string) => {
+      const response = await fetchAreaIntelligenceByViewport({
+        withPopulation: false,
+        withIncome: false,
+        withRealEstate: true,
+        shouldReturnFeatures: true,
+        sample: realEstateSample,
+        realEstateField: nextRealEstateField,
+        realEstateColor: nextRealEstateColor,
+      });
+      if (!response) return;
+
+      const { features, metadata } = response;
+
+      setGeoPoints(prevPoints => {
+        const realEstateLayer: MapFeatures = {
+          layerId: 1005,
+          type: 'FeatureCollection',
+          features: features,
+          display: true,
+          intelligence_metadata: metadata,
+          points_color: getIntelligenceLayerColor({ intelligence_metadata: metadata }),
+          layer_legend: buildIntelligenceLayerLegend(
+            metadata,
+            'Real Estate Intelligence',
+            features?.length
+          ),
+          is_grid: true,
+          is_intelligent: true,
+          is_fake: false,
+          is_refetch: true,
+          basedon: 'total_category_listings',
+          visualization_mode: 'grid',
+          bknd_dataset_id: '',
+          layer_id: '',
+          records_count: features?.length ?? 0,
+          next_page_token: '',
+        };
+
+        const filteredPoints = prevPoints.filter(point => point.layerId !== realEstateLayer.layerId);
+        return [...filteredPoints, realEstateLayer];
+      });
+
+      setLayerDataMap(prev => ({
+        ...prev,
+        1005: features,
+      }));
+    },
+    [fetchAreaIntelligenceByViewport, realEstateSample, setGeoPoints, setLayerDataMap]
+  );
+
+  const changePopulationSettings = useCallback(
+    async (field?: string, color?: string) => {
+      const nextField = field ?? populationField;
+      const nextColor = color ?? populationColor;
+      setIsChangingOpacityField(true);
+      setPopulationField(nextField);
+      setPopulationColor(nextColor);
+      setViewport(prev =>
+        prev
+          ? {
+              ...prev,
+              population_field: nextField,
+              population_color: nextColor,
+            }
+          : prev
+      );
+      try {
+        if (includePopulation) {
+          await updatePopulationLayerData(nextField, nextColor);
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Failed to update population layer settings';
+        setIsError(new Error(message));
+      } finally {
+        setIsChangingOpacityField(false);
+      }
+    },
+    [
+      populationField,
+      populationColor,
+      includePopulation,
+      setPopulationField,
+      setPopulationColor,
+      setViewport,
+      updatePopulationLayerData,
+      setIsError,
+    ]
+  );
+
+  const changeIncomeSettings = useCallback(
+    async (field?: string, color?: string) => {
+      const nextField = field ?? incomeField;
+      const nextColor = color ?? incomeColor;
+      setIsChangingOpacityField(true);
+      setIncomeField(nextField);
+      setIncomeColor(nextColor);
+      setViewport(prev =>
+        prev
+          ? {
+              ...prev,
+              income_field: nextField,
+              income_color: nextColor,
+            }
+          : prev
+      );
+      try {
+        if (includeIncome) {
+          await updateIncomeLayerData(nextField, nextColor);
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Failed to update income layer settings';
+        setIsError(new Error(message));
+      } finally {
+        setIsChangingOpacityField(false);
+      }
+    },
+    [
+      incomeField,
+      incomeColor,
+      includeIncome,
+      setIncomeField,
+      setIncomeColor,
+      setViewport,
+      updateIncomeLayerData,
+      setIsError,
+    ]
+  );
+
+  const changeRealEstateSettings = useCallback(
+    async (field?: string, color?: string) => {
+      const nextField = field ?? realEstateField;
+      const nextColor = color ?? realEstateColor;
+      setIsChangingOpacityField(true);
+      setRealEstateField(nextField);
+      setRealEstateColor(nextColor);
+      setViewport(prev =>
+        prev
+          ? {
+              ...prev,
+              real_estate_field: nextField,
+              real_estate_color: nextColor,
+            }
+          : prev
+      );
+      try {
+        if (includeRealEstate) {
+          await updateRealEstateLayerData(nextField, nextColor);
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Failed to update real estate layer settings';
+        setIsError(new Error(message));
+      } finally {
+        setIsChangingOpacityField(false);
+      }
+    },
+    [
+      realEstateField,
+      realEstateColor,
+      includeRealEstate,
+      setRealEstateField,
+      setRealEstateColor,
+      setViewport,
+      updateRealEstateLayerData,
+      setIsError,
+    ]
+  );
 
   // Trigger refetch when real estate sample toggle changes
   useEffect(() => {
@@ -1569,6 +1936,10 @@ export function LayerProvider(props: { children: ReactNode }) {
         setIncludeRealEstate,
         switchRealEstateLayer,
         refetchRealEstateLayer,
+        isChangingOpacityField,
+        changePopulationSettings,
+        changeIncomeSettings,
+        changeRealEstateSettings,
         handleSubmitFetchDataset,
         currentViewportInsights,
         handleFullDataFetchSuccess,
